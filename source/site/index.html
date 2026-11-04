@@ -2,11 +2,54 @@
 <html>
   <head>
     <title>My Express Server</title>
-    <script>
-      window.socket = new WebSocket("wss://echo.websocket.org/");
+    <script type="module">
+      getVisitors();
+
+      async function getVisitors() {
+        let res = await fetch("/visitors");
+        let { visitors } = await res.json();
+
+        document.getElementById("visit_counter").innerText =
+          `You are visitor number ${visitors}.`;
+      }
+
+      // Set up my web socket
+      let socket = new WebSocket("wss://echo.websocket.org/");
+
+      // Listen for messages
+      socket.addEventListener("message", (event) => {
+        addToChat(event.data, "them");
+      });
+
+      // Send chat message mechanism
+      document.getElementById("chat_send").addEventListener("click", () => {
+        let input = document.getElementById("chat_input");
+        let message = input.value;
+        input.value = "";
+
+        // Send message out somehow
+        socket.send(message);
+
+        // Add my message to the chat log
+        addToChat(message, "me");
+      });
+
+      function addToChat(message, sender) {
+        let messageDisplay = document.createElement("li");
+        messageDisplay.innerText = `${sender}: ${message}`;
+        document.getElementById("chat").appendChild(messageDisplay);
+      }
     </script>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1>Hello world!</h1>
+    <h1>My Chat Application</h1>
+    <div class="chat-window">
+      <ul id="chat"></ul>
+      <div class="chat-ui">
+        <input id="chat_input" /><button id="chat_send">Send</button>
+      </div>
+    </div>
+    <footer><p id="visit_counter">Fetching visitors...</p></footer>
   </body>
 </html>
